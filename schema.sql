@@ -1,5 +1,7 @@
 -- Create table Customers
-CREATE TABLE customers (
+DROP TABLE IF EXISTS customers;
+CREATE TABLE IF NOT EXISTS customers
+(
   customerId SERIAL PRIMARY KEY,
   name VARCHAR(255),
   email VARCHAR(255),
@@ -7,38 +9,38 @@ CREATE TABLE customers (
   password VARCHAR(255),
   roleId INTEGER REFERENCES roles(roleId)
 );
-
 -- Create table Roles
-CREATE TABLE roles (
+DROP TABLE IF EXISTS roles;
+CREATE TABLE IF NOT EXISTS roles (
   roleId SERIAL PRIMARY KEY,
   roleName VARCHAR(255)
 );
-
 -- Create table Permissions
-CREATE TABLE permissions (
+DROP TABLE IF EXISTS permissions;
+CREATE TABLE IF NOT EXISTS permissions (
   permissionId SERIAL PRIMARY KEY,
   permission VARCHAR(255)
 );
-
 -- Create table RolePermissions
-CREATE TABLE rolePermissions (
+DROP TABLE IF EXISTS rolePermissions;
+CREATE TABLE IF NOT EXISTS rolePermissions (
   roleId INTEGER REFERENCES roles(roleId),
   permissionId INTEGER REFERENCES permissions(permissionId),
   PRIMARY KEY (roleId, permissionId)
 );
-
 -- Create table CustomerTickets
-CREATE TABLE customerTickets (
+DROP TABLE IF EXISTS customerTickets;
+CREATE TABLE IF NOT EXISTS customerTickets (
   customerTicketId SERIAL PRIMARY KEY,
   subject VARCHAR(255),
   description TEXT,
   status VARCHAR(255) DEFAULT 'open',
   customerId INTEGER REFERENCES customers(customerId)
 );
-
 -- Create table AgentTickets
-CREATE TABLE agentTickets (
-  agentTicketId SERIAL PRIMARY KEY,
+DROP TABLE IF EXISTS rolesKEY;
+CREATE TABLE IF NOT EXISTS rolesKEY
+(
   subject VARCHAR(255),
   agentDescription TEXT,
   priority VARCHAR(255),
@@ -46,15 +48,16 @@ CREATE TABLE agentTickets (
   departmentId INTEGER REFERENCES departments(departmentId),
   customerTicketId INTEGER REFERENCES customerTickets(customerTicketId)
 );
-
 -- Create table Departments
-CREATE TABLE departments (
+DROP TABLE IF EXISTS departments;
+CREATE TABLE IF NOT EXISTS departments (
   departmentId SERIAL PRIMARY KEY,
   departmentName VARCHAR(255)
 );
-
 -- Create table Employees
-CREATE TABLE employees (
+DROP TABLE IF EXISTS employees;
+CREATE TABLE IF NOT EXISTS employees
+ (
   employeeId SERIAL PRIMARY KEY,
   employeeName VARCHAR(255),
   departmentId INTEGER REFERENCES departments(departmentId),
