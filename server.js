@@ -5,27 +5,35 @@ const app = express();
 const cors = require('cors');
 const pg = require("pg");
 const client = new pg.Client(process.env.DATABASE_URL);
-//const data = require('./Movie Data/data.json');
 const axios = require("axios");
 app.use(cors());
 app.use(express.json());
 
 
-// ################################################################################################################
+// ################################################################################################################ 
+
+
 // middle wares (routes)
-app.post('/addCustomer', addCustomerHandler);
-app.post('/ValidationLogIn/:role', handleValidationLogIn);
-app.post('/addCustomerTicket', addCustomerTicketHandler);
-app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler);
+
+
+
+/*1*/app.post('/addCustomer', addCustomerHandler);                   // add customer to customers table on sign in 
+/*2*/app.post('/ValidationLogIn/:role', handleValidationLogIn);      // validate customer or employee login
+/*3*/app.post('/addCustomerTicket', addCustomerTicketHandler);       // add customer ticket to customerTickets table
+/*4*/app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler); // get customer tickets from customerTickets table
 
 
 
 
 // ################################################################################################################
+
+
+// *********************************************************************************************************************
+
 // handlers ()
 
 
-function addCustomerHandler(req, res) {
+/*1*/function addCustomerHandler(req, res) {
     let newCustomer = req.body;
     let sql = `INSERT INTO customers (name, email, address, password, roleId) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
     let values = [newCustomer.name, newCustomer.email, newCustomer.address, newCustomer.password, 1];
@@ -40,8 +48,9 @@ function addCustomerHandler(req, res) {
         });
 }
 
+// _____________________________________________________________________________________________________________________
 
-function handleValidationLogIn(req, res) {
+/*2*/function handleValidationLogIn(req, res) {
     const roleNo = req.params.role;
     const getemail = req.body.email;
     const getpassword = req.body.password;
@@ -84,8 +93,10 @@ function handleValidationLogIn(req, res) {
             });
     }
 }
+// _____________________________________________________________________________________________________________________
 
-function addCustomerTicketHandler(req, res) {
+
+/*3*/function addCustomerTicketHandler(req, res) {
     let newCustomerTicket = req.body;
     let sql = `INSERT INTO customerTickets (subject, description, status,customerId) VALUES ($1, $2, $3, $4) RETURNING *`;
     let values = [
@@ -105,7 +116,9 @@ function addCustomerTicketHandler(req, res) {
 }
 
 
-function getCustomerTicketsHandler(req, res) {
+// ______________________________________________________________________________________________________________________
+
+/*4*/function getCustomerTicketsHandler(req, res) {
     let customerId = req.params.CID;
     let sql = `SELECT * FROM customerTickets WHERE customerId = $1`;
     let values = [customerId];
@@ -120,8 +133,15 @@ function getCustomerTicketsHandler(req, res) {
         });
 }
 
+// ______________________________________________________________________________________________________________________
+
+
+
+
 
 // ###################################################################################################################
+
+// listen to port if connected to database
 client.connect().then(() => {
     const port = process.env.PORT;
     app.listen(port, () => {
