@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS customerTickets (
   customerId INTEGER REFERENCES customers(customerId)
 );
 -- Create table AgentTickets
-DROP TABLE IF EXISTS rolesKEY;
-CREATE TABLE IF NOT EXISTS rolesKEY
+DROP TABLE IF EXISTS AgentTickets;
+CREATE TABLE IF NOT EXISTS AgentTickets
 (
   subject VARCHAR(255),
   agentDescription TEXT,
