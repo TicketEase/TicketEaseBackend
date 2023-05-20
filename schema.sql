@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS customerTickets (
 DROP TABLE IF EXISTS AgentTickets;
 CREATE TABLE IF NOT EXISTS AgentTickets
 (
+  agentTicketId SERIAL PRIMARY KEY,
   subject VARCHAR(255),
   agentDescription TEXT,
   priority VARCHAR(255),
@@ -48,12 +49,14 @@ CREATE TABLE IF NOT EXISTS AgentTickets
   departmentId INTEGER REFERENCES departments(departmentId),
   customerTicketId INTEGER REFERENCES customerTickets(customerTicketId)
 );
+
 -- Create table Departments
 DROP TABLE IF EXISTS departments;
 CREATE TABLE IF NOT EXISTS departments (
   departmentId SERIAL PRIMARY KEY,
   departmentName VARCHAR(255)
 );
+
 -- Create table Employees
 DROP TABLE IF EXISTS employees;
 CREATE TABLE IF NOT EXISTS employees
