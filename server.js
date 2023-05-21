@@ -8,6 +8,8 @@ const client = new pg.Client(process.env.DATABASE_URL);
 const axios = require("axios");
 app.use(cors());
 app.use(express.json());
+const faqData = require ('./faqData.json');  // Import faqData.json
+
 
 
 // ################################################################################################################ 
@@ -21,8 +23,8 @@ app.use(express.json());
 /*2*/app.post('/ValidationLogIn/:role', handleValidationLogIn);      // validate customer or employee login
 /*3*/app.post('/addCustomerTicket', addCustomerTicketHandler);       // add customer ticket to customerTickets table
 /*4*/app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler); // get customer tickets from customerTickets table
-
-
+/*Insert number */app.get('/faq', faqHandler);                                    //Show FAQ info
+/*insert number */app.get('/faq/search', searchFAQHandler);                       //Search in FAQ info
 
 
 // ################################################################################################################
@@ -135,9 +137,55 @@ app.use(express.json());
 
 // ______________________________________________________________________________________________________________________
 
+/*5*/function getHandleUserInfo(req, res) {
+  const sql = 'SELECT * FROM customers';
+  client.query(sql)
+    .then((data) => {
+      const userInfo = data.rows.map((item) => ({
+        customerId: item.customerid,
+        name: item.name,
+        email: item.email,
+        address: item.address
+      }));
+      res.send(userInfo);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send("An error occurred while getting user info");
+    });
+}
+// ______________________________________________________________________________________________________________________
+// ______________________________________________________________________________________________________________________
 
+/*6*/function faqHandler(req, res) {
+  res.send(faqData);
+}
 
+  // ______________________________________________________________________________________________________________________
+// ______________________________________________________________________________________________________________________
 
+/*7*/function searchFAQHandler(req, res) {
+    const searchTerm = req.query.term; // Assuming the search term is passed as a query parameter named 'term'
+  
+    if (!searchTerm) {
+      res.status(400).send('Search term is missing');
+      return;
+    }
+  
+    const searchResults = faqData.filter((faq) => {
+      const question = faq.question ? faq.question.toLowerCase() : '';
+      return question.includes(searchTerm.toLowerCase());
+    });
+  
+    if (searchResults.length === 0) {
+      res.send('No results found, please choose a closer word');
+    } else {
+      res.send(searchResults);
+    }
+  }
+
+//!! for example test >> http://localhost:5000/faq/search?term=update 
+  // ______________________________________________________________________________________________________________________
 
 // ###################################################################################################################
 

@@ -1,0 +1,83 @@
+[
+    {
+      "question": "How do I create a new ticket?",
+      "answer": "To create a new ticket, go to the Tickets section and click on the 'New Ticket' button. Fill in the required information and submit the form."
+    },
+    {
+      "question": "What should I include in the ticket description?",
+      "answer": "Please provide a detailed description of the issue you are facing. Include any error messages, steps to reproduce the problem, and any relevant information that can help us understand and resolve the issue faster."
+    },
+    {
+      "question": "How can I check the status of my ticket?",
+      "answer": "You can check the status of your ticket by visiting the Tickets section and viewing the ticket list. Each ticket will display its current status, such as 'Open,' 'In Progress,' or 'Resolved.'"
+    },
+    {
+      "question": "Can I reopen a closed ticket?",
+      "answer": "Yes, you can reopen a closed ticket if the issue persists or if you have additional questions or concerns. Simply navigate to the Tickets section, find the closed ticket, and click on the 'Reopen' button."
+    },
+    {
+      "question": "How long does it usually take to resolve a ticket?",
+      "answer": "The time to resolve a ticket depends on the complexity of the issue. We strive to address and resolve tickets as quickly as possible. However, the resolution time may vary based on the nature of the problem."
+    },
+    {
+      "question": "What happens if I need to provide additional information for my ticket?",
+      "answer": "If you need to provide additional information for your ticket, you can add a comment or update the ticket description. Our support team will review the new information and take it into consideration while working on your ticket."
+    },
+    {
+      "question": "Can I attach files or screenshots to my ticket?",
+      "answer": "Yes, you can attach files or screenshots to your ticket. When creating a new ticket or adding a comment, you'll have the option to upload files. This can be helpful for providing more context or sharing relevant documents."
+    },
+    {
+      "question": "How will I be notified about updates on my ticket?",
+      "answer": "You will receive email notifications for any updates on your ticket. This includes status changes, comments from our support team, or any other relevant information regarding the progress of your ticket."
+    },
+    {
+      "question": "What should I do if I'm not satisfied with the resolution of my ticket?",
+      "answer": "If you're not satisfied with the resolution of your ticket, please reach out to our support team and explain your concerns. We will review your feedback and work towards finding a satisfactory solution."
+    },
+    {
+      "question": "Are there any self-help resources available?",
+      "answer": "Yes, we provide a knowledge base and frequently asked questions (FAQ) section on our website. You can find helpful articles and guides that may assist you in resolving common issues."
+    },
+    {
+      "question": "Is there a limit to the number of tickets I can create?",
+      "answer": "There is no limit to the number of tickets you can create. You can raise a new ticket for each separate issue or question you have."
+    },
+    {
+      "question": "How can I escalate a ticket to a higher priority?",
+      "answer": "If you believe your ticket requires urgent attention, please mention the urgency in the ticket description or contact our support team directly. We will assess the situation and escalate the ticket's priority if necessary."
+    },
+    {
+      "question": "Can I track the history of my ticket's interactions?",
+      "answer": "Yes, you can track the history of your ticket's interactions. The ticket system logs all comments, status changes, and other activities related to the ticket. You can view the complete history by accessing the ticket details."
+    },
+    {
+      "question": "What should I do if I accidentally close a ticket?",
+      "answer": "If you accidentally close a ticket but still require assistance, please contact our support team and provide them with the ticket details. We will reopen the ticket for you and continue to address your concerns."
+    },
+    {
+      "question": "Can I request a refund for a ticket?",
+      "answer": "Refunds for tickets are subject to our refund policy. If you believe you are eligible for a refund, please contact our support team and provide the necessary information. We will assess your request and guide you accordingly."
+    },
+    {
+      "question": "How can I provide feedback on the ticketing system or support experience?",
+      "answer": "We appreciate your feedback! You can provide feedback on the ticketing system or your support experience by filling out our feedback form or contacting our support team directly. Your input helps us improve our services."
+    },
+    {
+      "question": "Can I view or print my ticket for reference?",
+      "answer": "Yes, you can view and print your ticket for reference purposes. Simply access the ticket details and use the provided options to view or print the ticket information."
+    },
+    {
+      "question": "Is there a way to prioritize certain tickets over others?",
+      "answer": "We have a priority system in place to handle tickets based on their urgency and impact. However, the priority assigned to each ticket is determined by our support team, considering various factors. You can mention the urgency in the ticket description to help us assess the priority."
+    },
+    {
+      "question": "What happens if I forget my ticket reference number?",
+      "answer": "If you forget your ticket reference number, please contact our support team and provide them with any other relevant information, such as your name or email address used when creating the ticket. We will assist you in retrieving the necessary details."
+    },
+    {
+      "question": "Can I transfer a ticket to another person?",
+      "answer": "Yes, you can transfer a ticket to another person if necessary. Please contact our support team and provide them with the details of the ticket and the new recipient. We will handle the transfer accordingly."
+    }
+  ]
+  
