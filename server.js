@@ -22,7 +22,10 @@ app.use(express.json());
 /*3*/app.post('/addCustomerTicket', addCustomerTicketHandler);       // add customer ticket to customerTickets table
 /*4*/app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler); // get customer tickets from customerTickets table
 
-
+/*natali*/
+/*5*/app.post('/creatAgentTicket/:TID', CreatAgentTicketHandler);    //add agent ticket to AgentTicket table
+///*6*/app.post('/updateAgentTicket/:TID', UpdateAgentTicketHandler);  //update agent ticket when recive comment from employee
+///*7*/app.delete("/deleteCustomerTicket/:TID", DeleteTicketHandler);  //delete customer ticket from customeTicket table
 
 
 // ################################################################################################################
@@ -134,6 +137,63 @@ app.use(express.json());
 }
 
 // ______________________________________________________________________________________________________________________
+
+/*5*/function CreatAgentTicketHandler(req, res) {
+    let newAgentTicket = req.body;
+    let TID = req.params.customerTicketId;
+    let sql = `INSERT INTO AgentTickets (subject, agentDescription, priority,employeeComment,departmentId,customerTicketId) VALUES ($1, $2, $3, $4, $5,$6) WHERE customerTicketId=${TID} RETURNING *`;
+    let values = [newAgentTicket.subject, newAgentTicket.agentDescription, newAgentTicket.priority,newAgentTicket.employeeComment,newAgentTicket.departmentId,newAgentTicket.customerTicketId];
+    client                                       
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in creating agent ticket", error);
+            res.status(500).send("An error occurred while creating agent ticket");
+        });
+}
+
+// ______________________________________________________________________________________________________________________
+
+// /*6*/function UpdateAgentTicketHandler(req, res) {
+//     let updatAgentTicket = req.body;
+//     let TID = req.params.customerTicketId;
+//     const sql = `update AgentTickets set agentDescription=$1,departmentId=$2 where customerTicketId=${TID} returning *`;
+//     const values = [updatAgentTicket.agentDescription, updatAgentTicket.departmentId];
+//     client.query(sql, values)
+//         .then((data) => {
+//             const newsql = `select * from AgentTickets;`
+//             client.query(newsql).then((data) => {
+//                 res.status(200).json(data.rows);
+//             })
+//         })
+//         .catch((error) => {
+//             res.status(500).send("An error occurred while updating agent ticket");
+//         });
+// }
+
+// ______________________________________________________________________________________________________________________
+
+// /*7*/function DeleteTicketHandler(req, res) {
+//     let DeletCustomerTicket = req.body;
+//     let TID = req.params.customerTicketId;
+//     const sql = `delete from customerTickets where customerTicketId = ${TID}`;
+//     client.query(sql)
+//         .then((data) => {
+//             const newsql = `select * from customerTickets;`
+//             client.query(newsql).then((data) => {
+//                 res.status(200).json(data.rows);
+//             })
+//         })
+//         .catch((error) => {
+//             res.status(500).send(error, "an error occured while deleting customer ticket");
+//         });
+// }
+
+// ______________________________________________________________________________________________________________________
+
+
 
 
 
