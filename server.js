@@ -8,6 +8,7 @@ const client = new pg.Client(process.env.DATABASE_URL);
 const axios = require("axios");
 app.use(cors());
 app.use(express.json());
+const faqData = require ('./faqData.json');  // Import faqData.json
 
 
 // ################################################################################################################ 
@@ -34,6 +35,10 @@ app.use(express.json());
 /*6*/ app.get('/allAgentTickets', allAgentTicketsHandler); //get all agent tickets
 app.get('/SearchInAgentTicket', SearchInAgentTicketHandler); //search in agent ticket based on customer's email
 app.get('/getAllCustomers',getAllCustomersHandler)
+/*Insert number */app.get('/faq', faqHandler);                                    //Show FAQ info
+/*insert number */app.get('/searchFAQ', searchFAQHandler);                       //Search in FAQ info
+
+
 // ################################################################################################################
 
 
@@ -478,6 +483,37 @@ res.body
   }
 ]
 */
+// ______________________________________________________________________________________________________________________
+/*6*/function faqHandler(req, res) {
+  res.send(faqData);
+}
+
+
+// ______________________________________________________________________________________________________________________
+/*7*/function searchFAQHandler(req, res) {
+  const searchTerm = req.query.term; // Assuming the search term is passed as a query parameter named 'term'
+  
+  if (!searchTerm) {
+    res.status(400).send('Search term is missing');
+    return;
+  }
+
+  const searchResults = faqData.filter((faq) => {
+    const question = faq.question ? faq.question.toLowerCase() : '';
+    return question.includes(searchTerm.toLowerCase());
+  });
+
+  if (searchResults.length === 0) {
+    res.send('No results found, please choose a closer word');
+  } else {
+    res.send(searchResults);
+  }
+}
+
+//!! for example test >> http://localhost:5000/searchFAQ?term=update 
+
+
+// ______________________________________________________________________________________________________________________
 
 
 
