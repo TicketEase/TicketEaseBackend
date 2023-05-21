@@ -1,4 +1,3 @@
-
-INSERT into roles (roleName) values ('customer');
-INSERT into roles (roleName) values ('admin');
-INSERT into roles (roleName) values ('employee');
+INSERT into roles (rolename) values ('customer');
+INSERT into roles (rolename) values ('admin');
+INSERT into roles (rolename) values ('employee');
