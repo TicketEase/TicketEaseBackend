@@ -1,0 +1,137 @@
+// ################################################################################################################
+///*5*/app.put('/updateCustomerTicket/:TID', updateCustomerTicketHandler); // update customer ticket in customerTickets table
+///*6*/app.put('/updateTicketStatus/:TID', updateTicketStatusHandler); // update ticket status in customerTickets table
+// here we can add more middle wares (routes) to handle requests
+///*7*/app.put('/updateAgentTickets/:agentTID', updateAgentTicketHandler);   // add the employee comment to the agent ticket
+///*6*/app.post('/updateAgentTicket/:TID', UpdateAgentTicketHandler);  //update agent ticket when recive comment from employee
+///*7*/app.delete("/deleteCustomerTicket/:TID", DeleteTicketHandler);  //delete customer ticket from customeTicket table
+// ______________________________________________________________________________________________________________________
+
+// /*6*/function UpdateAgentTicketHandler(req, res) {
+//     let updatAgentTicket = req.body;
+//     let TID = req.params.customerTicketId;
+//     const sql = `update AgentTickets set agentDescription=$1,departmentId=$2 where customerTicketId=${TID} returning *`;
+//     const values = [updatAgentTicket.agentDescription, updatAgentTicket.departmentId];
+//     client.query(sql, values)
+//         .then((data) => {
+//             const newsql = `select * from AgentTickets;`
+//             client.query(newsql).then((data) => {
+//                 res.status(200).json(data.rows);
+//             })
+//         })
+//         .catch((error) => {
+//             res.status(500).send("An error occurred while updating agent ticket");
+//         });
+// }
+
+// ______________________________________________________________________________________________________________________
+
+// /*7*/function DeleteTicketHandler(req, res) {
+//     let DeletCustomerTicket = req.body;
+//     let TID = req.params.customerTicketId;
+//     const sql = `delete from customerTickets where customerTicketId = ${TID}`;
+//     client.query(sql)
+//         .then((data) => {
+//             const newsql = `select * from customerTickets;`
+//             client.query(newsql).then((data) => {
+//                 res.status(200).json(data.rows);
+//             })
+//         })
+//         .catch((error) => {
+//             res.status(500).send(error, "an error occured while deleting customer ticket");
+//         });
+// }
+
+// ______________________________________________________________________________________________________________________
+
+
+
+
+
+
+/*5*/ function updateCustomerTicketHandler(req, res) {
+        let ticketId = req.params.TID;
+        let customerUpdate = req.body;
+        let sql = `UPDATE customertickets
+    SET subject = $1, description = $2
+    WHERE customerTicketId = $3
+    RETURNING *`;
+        let values = [customerUpdate.subject, customerUpdate.description, ticketId];
+        client
+            .query(sql, values)
+            .then(result => {
+                res.send(result.rows);
+            })
+            .catch(error => {
+                console.log("Error in updating customer ticket:", error);
+                res.status(500).send("An error occurred while updating customer ticket");
+            });
+    }
+
+
+
+
+/*6*/function updateTicketStatusHandler(req, res) {
+        let ticketId = req.params.TID;
+        let customerUpdate = req.body.status;
+        let sql = `UPDATE customertickets
+    SET status = $1
+    WHERE customerTicketId = $2
+    RETURNING *`;
+        let values = [customerUpdate, ticketId];
+        client
+            .query(sql, values)
+            .then(result => {
+                res.send(result.rows);
+            })
+            .catch(error => {
+                console.log("Error in updating customer ticket:", error);
+                res.status(500).send("An error occurred while updating customer ticket");
+            });
+    }
+
+
+/* 
+http://localhost:3001/updateTicketStatus/15
+
+req.body
+{
+    "status": "inprogress"
+}
+
+res.body
+
+[
+  {
+    "customerticketid": 15,
+    "subject": "noooooooooooooooooooo",
+    "description": "momo@ddfesfsfsdadawdawdawdefsfsgmail.com",
+    "status": "inprogress",
+    "customerid": 1
+  }
+]
+
+*/
+
+// ______________________________________________________________________________________________________________________
+
+
+
+/*7*/function updateAgentTicketHandler(req, res) {
+        let agentTicketId = req.params.agentTID;
+        let employeeComment = req.body.comment;
+        let sql = `UPDATE agenttickets
+    SET employeeComment = $1
+    WHERE agentticketid = $2
+    RETURNING *`;
+        let values = [employeeComment, agentTicketId];
+        client
+            .query(sql, values)
+            .then(result => {
+                res.send(result.rows);
+            })
+            .catch(error => {
+                console.log("Error in updating agent ticket:", error);
+                res.status(500).send("An error occurred while updating agent ticket");
+            });
+    }
