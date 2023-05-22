@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS agenttickets
   employeecomment TEXT,
   departmentid INTEGER REFERENCES departments(departmentid),
   customerticketid INTEGER REFERENCES customertickets(customerticketid),
-  employeeid INTEGER REFERENCES Employees(employeeid)
+  employeeid INTEGER REFERENCES Employees(employeeid),
+  agestatus VARCHAR(255)
 );
 
 -- Create table Departments

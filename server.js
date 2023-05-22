@@ -8,92 +8,102 @@ const client = new pg.Client(process.env.DATABASE_URL);
 const axios = require("axios");
 app.use(cors());
 app.use(express.json());
-const faqData = require ('./faqData.json');  // Import faqData.json
+const faqData = require('./faqData.json');  // Import faqData.json
 
 
 // ################################################################################################################ 
-
-
 // middle wares (routes)
 
+//FAQ
+/*1*/app.get('/faq', faqHandler);                                    //Show FAQ info
+/*2*/app.get('/searchFAQ/:serchingWord', searchFAQHandler);                       //Search in FAQ info
+// _____________________________________________________________________________________________________________________
 
+//Validation Login Handlers
+/*3*/app.post('/costmerValidationLogIn', costmerValidationLogInHandle);      // validate customer login
+/*4*/app.post('/employeeValidationLogIn/:roleNo', employeeValidationLogInHandle);      // validate employee login
+// _____________________________________________________________________________________________________________________
 
-/*1*/app.post('/addCustomer', addCustomerHandler);                   // add customer to customers table on sign in 
-/*2*/app.post('/ValidationLogIn/:role', handleValidationLogIn);      // validate customer or employee login
-/*3*/app.post('/addCustomerTicket/:CID', addCustomerTicketHandler);       // add customer ticket to customerTickets table
-/*4*/app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler); // get customer tickets from customerTickets table
-///*5*/app.put('/updateCustomerTicket/:TID', updateCustomerTicketHandler); // update customer ticket in customerTickets table
-///*6*/app.put('/updateTicketStatus/:TID', updateTicketStatusHandler); // update ticket status in customerTickets table
-// here we can add more middle wares (routes) to handle requests
-///*7*/app.put('/updateAgentTickets/:agentTID', updateAgentTicketHandler);   // add the employee comment to the agent ticket
+//Customers side 
+/*5*/app.post('/addCustomer', addCustomerHandler); // add customer to customers table on sign in 
+/*6*/app.post('/addCustomerTicket/:CID', addCustomerTicketHandler); // add customer ticket to customerTickets table
+/*7*/app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler); // get customer tickets from customerTickets table
 /*8*/app.get('/allCustomersTickets', allCustomersTicketsHandler); // get all customer tickets from customerTickets table were the status is open
+/*9*/app.get('/getAllCustomers', getAllCustomersHandler);  //get all customers
+// _____________________________________________________________________________________________________________________
 
-/*natali*/
-/*5*/app.post('/creatAgentTicket/:TID', CreatAgentTicketHandler);    //add agent ticket to AgentTicket table
-///*6*/app.post('/updateAgentTicket/:TID', UpdateAgentTicketHandler);  //update agent ticket when recive comment from employee
-///*7*/app.delete("/deleteCustomerTicket/:TID", DeleteTicketHandler);  //delete customer ticket from customeTicket table
-/*6*/ app.get('/allAgentTickets', allAgentTicketsHandler); //get all agent tickets
-app.get('/SearchInAgentTicket', SearchInAgentTicketHandler); //search in agent ticket based on customer's email
-app.get('/getAllCustomers',getAllCustomersHandler)
-/*Insert number */app.get('/faq', faqHandler);                                    //Show FAQ info
-/*insert number */app.get('/searchFAQ', searchFAQHandler);                       //Search in FAQ info
-
-
-// ################################################################################################################
-
+//agent side
+/*10*/app.post('/creatAgentTicket/:TID', CreatAgentTicketHandler);    //add agent ticket to AgentTicket table acoording to customer Ticket ID
+/*11*/ app.get('/allAgentTickets', allAgentTicketsHandler); //get all agent tickets
+/*12*/app.get('/SearchInAgentTicket', SearchInAgentTicketHandler); //search in agent ticket based on customer's email
+/*13*/app.patch ('/CloseAgenttTicket/:TID',CloseAgentTicketHandler);//close AgentTicket 
+/*14*/app.get('/sortAgTicketByStatus', sortingAgentTicketsByStatus);// sorte agent tickets according to status (closed or open)
+/*15*/app.get('/sortAgTicketbyPriority', sortingAgentTicketsByPriority);// sorte agent tickets according to priority (high, medium, low)
+/*16*/app.get('/sortAgTicketByDepartment', sortingAgentTicketsByDepartment);// sorte agent tickets according to Department 
+// _____________________________________________________________________________________________________________________
+//employee side 
+/*17*/app.patch('/assignTicketByEmployee/:TID', assignTicketByEmployeeHandler);// Agent Ticket Assignment by employee 
+/*18*/app.patch('/addCommentByEmployee/:TID',addCommentByEmployeeHandler); // Add comment on Agent Ticket by employee
+/*19*/app.patch('/RemoveAgentTiketFromEmployeeWindow/:TID',RemoveAgentTiketFromEmployeeWindowHendler);// Remove Agent Tiket From Employee Window
 
 // *********************************************************************************************************************
 
 // handlers ()
 
-
-/*1*/function addCustomerHandler(req, res) {
-    let newCustomer = req.body;
-    let sql = `INSERT INTO customers (cname, cemail, caddress, cpassword, roleid) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
-    let values = [newCustomer.cname, newCustomer.cemail, newCustomer.caddress, newCustomer.cpassword,1];
-    client
-        .query(sql, values)
-        .then(result => {
-            res.send(result.rows);
-        })
-        .catch(error => {
-            console.log("error in adding customer", error);
-            res.status(500).send("An error occurred while adding customer");
-        });
+//FAQ Handlers
+/*1*/function faqHandler(req, res) {
+    res.send(faqData);
 }
-/*
- http://localhost:3001/addCustomer
 
- req.body
-{
-  "name":"mohammad",
-  "email":"momo@gmail.com",
-  "address":"irbid",
-  "password":"0000"
-}
-// res.body
-[
-    {
-      "customerid": 5,
-      "name": "mohammad",
-      "email": "momo@gmail.com",
-      "address": "irbid",
-      "password": "0000",
-      "roleid": 1
+/*2*/function searchFAQHandler(req, res) {
+    const searchTerm = req.params.serchingWord; // Assuming the search term is passed as a query parameter named 'term'
+
+    if (!searchTerm) {
+        res.status(400).send('Search term is missing');
+        return;
     }
-  ]
- */
 
+    const searchResults = faqData.filter((faq) => {
+        const question = faq.question ? faq.question.toLowerCase() : '';
+        return question.includes(searchTerm.toLowerCase());
+    });
 
+    if (searchResults.length === 0) {
+        res.send('No results found, please choose a closer word');
+    } else {
+        res.send(searchResults);
+    }
+}
 // _____________________________________________________________________________________________________________________
 
-/*2*/function handleValidationLogIn(req, res) {
-    const roleNo = req.params.role;
+//Login Handlers
+
+/*3*/function costmerValidationLogInHandle(req, res) {
     const getemail = req.body.cemail;
     const getpassword = req.body.cpassword;
-    if (roleNo == 1) {
-        console.log("inside if 1 ")
-        const sql = `SELECT * FROM customers WHERE cemail = $1 AND cpassword = $2 `;
+    const sql = `SELECT * FROM customers WHERE cemail = $1 AND cpassword = $2 `;
+    const values = [getemail, getpassword];
+    client
+        .query(sql, values)
+        .then((data) => {
+            console.log(data.rows.length);
+            if (data.rows.length > 0) {
+                res.send(data.rows);
+            } else {
+                res.send("Invalid email or password");
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500).send("An error occurred while validating login");
+        });
+}
+/*4*/function employeeValidationLogInHandle(req, res) {
+    const roleNo = req.params.roleNo;
+    const getemail = req.body.employeeemail;
+    const getpassword = req.body.employeepassword;
+    if (roleNo == 2) {
+        const sql = `SELECT * FROM employees WHERE employeeemail = $1 AND employeepassword = $2 `;
         const values = [getemail, getpassword];
         client
             .query(sql, values)
@@ -110,34 +120,46 @@ app.get('/getAllCustomers',getAllCustomersHandler)
                 res.status(500).send("An error occurred while validating login");
             });
     }
-    // else if (roleNo == 2) {
-    //     const roleNo = req.params.role;
-    //     const getemail = req.body.cemail;
-    //     const getpassword = req.body.cpassword;
-    //     console.log("inside if 2 ")
-    //     const sql = `SELECT * FROM employees WHERE employeeemail = $1 AND employeepassword = $2`;
-    //     const values = [getemail, getpassword];
-    //     client
-    //         .query(sql, values)
-    //         .then((data) => {
-    //             console.log(data.rows.length);
-    //             if (data.rows.length > 0) {
-    //                 res.send("You are logged in");
-    //             } else {
-    //                 res.send("Invalid email or password");
-    //             }
-    //         })
-    //         .catch((error) => {
-    //             console.log(error);
-    //             res.status(500).send("An error occurred while validating login");
-    //         });
-    // }
+
+    else if (roleNo == 3) {
+        const sql = `SELECT * FROM employees WHERE employeeemail = $1 AND employeepassword = $2`;
+        const values = [getemail, getpassword];
+        client
+            .query(sql, values)
+            .then((data) => {
+                console.log(data.rows.length);
+                if (data.rows.length > 0) {
+                    res.send(data.rows);
+                } else {
+                    res.send("Invalid email or password");
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+                res.status(500).send("An error occurred while validating login");
+            });
+    }
 }
+
 // _____________________________________________________________________________________________________________________
+// CustomersHandler
+/*5*/function addCustomerHandler(req, res) {
+    let newCustomer = req.body;
+    let sql = `INSERT INTO customers (cname, cemail, caddress, cpassword, roleid) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+    let values = [newCustomer.cname, newCustomer.cemail, newCustomer.caddress, newCustomer.cpassword, 1];
+    client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in adding customer", error);
+            res.status(500).send("An error occurred while adding customer");
+        });
+}
 
-
-/*3*/function addCustomerTicketHandler(req, res) {
-    let CID=req.params.CID;
+/*6*/function addCustomerTicketHandler(req, res) {
+    let CID = req.params.CID;
     let newCustomerTicket = req.body;
     let sql = `INSERT INTO customertickets (tktsubject, tktdescription, tktstatus,customerid) VALUES ($1, $2, $3, $4) RETURNING *`;
     let values = [
@@ -155,31 +177,8 @@ app.get('/getAllCustomers',getAllCustomersHandler)
             res.status(500).send("An error occurred while adding customer ticket");
         });
 }
-/* 
- http://localhost:3001/addCustomerTicket
 
- req.body
-{
-  "subject":"mohammafsfsfsfd",
-  "description":"momo@ddfesfsfsefsfsgmail.com",
-  "status":"open",
-  "customerId":"1"
-}
-res.body
-[
-  {
-    "customerticketid": 15,
-    "subject": "mohammafsfsfsfd",
-    "description": "momo@ddfesfsfsefsfsgmail.com",
-    "status": "open",
-    "customerid": 1
-  }
-]
-*/
-
-// ______________________________________________________________________________________________________________________
-
-/*4*/function getCustomerTicketsHandler(req, res) {
+/*7*/function getCustomerTicketsHandler(req, res) {
     let customerId = req.params.CID;
     let sql = `SELECT * FROM customertickets WHERE customerid = $1`;
     let values = [customerId];
@@ -194,19 +193,40 @@ res.body
         });
 }
 
+/*8*/function allCustomersTicketsHandler(req, res) {
+    let sql = `SELECT * FROM customertickets WHERE tktstatus = 'open'`;
+    client
+        .query(sql)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in getting customer tickets", error);
+            res.status(500).send("An error occurred while getting customer tickets");
+        });
+}
 
-// http://localhost:3001/getCustomerTickets/1
+/*9*/function getAllCustomersHandler(req, res) {
+    let sql = `SELECT * FROM customers`;
+    client
+        .query(sql)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in getting agent tickets", error);
+            res.status(500).send("An error occurred while getting agent tickets");
+        });
+}
 
-
-
-// ______________________________________________________________________________________________________________________
-/*nataly and Zainab*/
-/*5*/function CreatAgentTicketHandler(req, res) {
+// _____________________________________________________________________________________________________________________
+// agentHandler
+/*10*/function CreatAgentTicketHandler(req, res) {
     let newAgentTicket = req.body;
     let TID = req.params.TID;
-    let sql = `INSERT INTO agenttickets (agesubject, agentdescription, agepriority,departmentid,customerticketid) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
-    let values = [newAgentTicket.agesubject, newAgentTicket.agentdescription, newAgentTicket.agepriority,newAgentTicket.departmentid,TID];
-    client                                       
+    let sql = `INSERT INTO agenttickets (agesubject, agentdescription, agepriority,departmentid,customerticketid,agestatus) VALUES ($1, $2, $3, $4, $5,$6) RETURNING *`;
+    let values = [newAgentTicket.agesubject, newAgentTicket.agentdescription, newAgentTicket.agepriority, newAgentTicket.departmentid, TID, "open"];
+    client
         .query(sql, values)
         .then(result => {
             res.send(result.rows);
@@ -217,7 +237,7 @@ res.body
         });
 }
 
-/*6*/function allAgentTicketsHandler(req, res) {
+/*11*/function allAgentTicketsHandler(req, res) {
     let sql = `SELECT * FROM agenttickets`;
     client
         .query(sql)
@@ -231,20 +251,17 @@ res.body
 }
 
 
-function SearchInAgentTicketHandler(req, res) {
-    let Cemial=req.query.cemail;
+/*12*/function SearchInAgentTicketHandler(req, res) {
+    let Cemial = req.query.cemail;
     console.log(Cemial);
     const sql = `
-    SELECT agenttickets.agentticketid, agenttickets.agesubject, agenttickets.agentdescription, agenttickets.agepriority, agenttickets.employeecomment
+    SELECT agenttickets.agentticketid, agenttickets.agesubject, agenttickets.agentdescription, agenttickets.agepriority, agenttickets.employeecomment ,agenttickets.agestatus
     FROM agenttickets,customers,customertickets 
     WHERE customers.cemail=$1
     AND customers.customerid =customertickets.customerid
     AND agenttickets.customerticketid=customertickets.customerticketid;`
     let values = [Cemial];
-
-
-
-    client.query(sql,values)
+    client.query(sql, values)
         .then((result) => {
             console.log("hi");
             res.send(result.rows)
@@ -253,271 +270,135 @@ function SearchInAgentTicketHandler(req, res) {
             res.status(500).send(error);
         });
 }
-
-
-/*6*/function getAllCustomersHandler(req, res) {
-    let sql = `SELECT * FROM customers`;
-    client
-        .query(sql)
-        .then(result => {
-            res.send(result.rows);
-        })
-        .catch(error => {
-            console.log("error in getting agent tickets", error);
-            res.status(500).send("An error occurred while getting agent tickets");
-        });
-}
-
-/*nataly and Zainab*/
-// ______________________________________________________________________________________________________________________
-
-// /*6*/function UpdateAgentTicketHandler(req, res) {
-//     let updatAgentTicket = req.body;
-//     let TID = req.params.customerTicketId;
-//     const sql = `update AgentTickets set agentDescription=$1,departmentId=$2 where customerTicketId=${TID} returning *`;
-//     const values = [updatAgentTicket.agentDescription, updatAgentTicket.departmentId];
-//     client.query(sql, values)
-//         .then((data) => {
-//             const newsql = `select * from AgentTickets;`
-//             client.query(newsql).then((data) => {
-//                 res.status(200).json(data.rows);
-//             })
-//         })
-//         .catch((error) => {
-//             res.status(500).send("An error occurred while updating agent ticket");
-//         });
-// }
-
-// ______________________________________________________________________________________________________________________
-
-// /*7*/function DeleteTicketHandler(req, res) {
-//     let DeletCustomerTicket = req.body;
-//     let TID = req.params.customerTicketId;
-//     const sql = `delete from customerTickets where customerTicketId = ${TID}`;
-//     client.query(sql)
-//         .then((data) => {
-//             const newsql = `select * from customerTickets;`
-//             client.query(newsql).then((data) => {
-//                 res.status(200).json(data.rows);
-//             })
-//         })
-//         .catch((error) => {
-//             res.status(500).send(error, "an error occured while deleting customer ticket");
-//         });
-// }
-
-// ______________________________________________________________________________________________________________________
-
-
-
-
-
-
-/*5*/ function updateCustomerTicketHandler(req, res) {
-    let ticketId = req.params.TID;
-    let customerUpdate = req.body;
-    let sql = `UPDATE customertickets
-    SET subject = $1, description = $2
-    WHERE customerTicketId = $3
-    RETURNING *`;
-    let values = [customerUpdate.subject, customerUpdate.description, ticketId];
+    
+/*13*/function CloseAgentTicketHandler(req, res) {    
+    let TID = req.params.TID;
+    let sql = `UPDATE agenttickets SET agestatus=$1 WHERE agentticketid =${TID} RETURNING *`;
+    let values = ['closed'];
     client
         .query(sql, values)
         .then(result => {
             res.send(result.rows);
         })
         .catch(error => {
-            console.log("Error in updating customer ticket:", error);
-            res.status(500).send("An error occurred while updating customer ticket");
-        });
-}
-/* 
-http://localhost:3001/updateCustomerTicket/15
-
-req.body
-{
-  "subject":"noooooooooooooooooooo",
-  "description":"momo@ddfesfsfsdadawdawdawdefsfsgmail.com"
-}
-
-res.body
-[
-  {
-    "customerticketid": 15,
-    "subject": "noooooooooooooooooooo",
-    "description": "momo@ddfesfsfsdadawdawdawdefsfsgmail.com",
-    "status": "open",
-    "customerid": 1
-  }
-]
-*/
-
-
-// ________________________________________________________________________________________________________________________
-
-
-
-/*6*/function updateTicketStatusHandler(req, res) {
-    let ticketId = req.params.TID;
-    let customerUpdate = req.body.status;
-    let sql = `UPDATE customertickets
-    SET status = $1
-    WHERE customerTicketId = $2
-    RETURNING *`;
-    let values = [customerUpdate, ticketId];
-    client
-        .query(sql, values)
-        .then(result => {
-            res.send(result.rows);
-        })
-        .catch(error => {
-            console.log("Error in updating customer ticket:", error);
-            res.status(500).send("An error occurred while updating customer ticket");
+            console.log("error in creating agent ticket", error);
+            res.status(500).send("An error occurred while closing agent ticket");
         });
 }
 
-
-/* 
-http://localhost:3001/updateTicketStatus/15
-
-req.body
-{
-    "status": "inprogress"
-}
-
-res.body
-
-[
-  {
-    "customerticketid": 15,
-    "subject": "noooooooooooooooooooo",
-    "description": "momo@ddfesfsfsdadawdawdawdefsfsgmail.com",
-    "status": "inprogress",
-    "customerid": 1
-  }
-]
-
-*/
-
-// ______________________________________________________________________________________________________________________
-
-
-
-/*7*/function updateAgentTicketHandler(req, res) {
-    let agentTicketId = req.params.agentTID;
-    let employeeComment = req.body.comment;
-    let sql = `UPDATE agenttickets
-    SET employeeComment = $1
-    WHERE agentticketid = $2
-    RETURNING *`;
-    let values = [employeeComment, agentTicketId];
-    client
-        .query(sql, values)
-        .then(result => {
-            res.send(result.rows);
-        })
-        .catch(error => {
-            console.log("Error in updating agent ticket:", error);
-            res.status(500).send("An error occurred while updating agent ticket");
-        });
-}
-
-/*
-http://localhost:3001/updateAgentTickets/1
-
-req.body
-
-{
-    "comment": " we will not fix the issue and take all your money"
-}
-
-res.body
-[
-  {
-    "agentticketid": 1,
-    "subject": "aaaaaa",
-    "agentdescription": "bbbbbb",
-    "priority": "cccccc",
-    "employeecomment": " we will not fix the issue and take all your money",
-    "departmentid": 1,
-    "customerticketid": 1
-  }
-]
-
-*/
-
-// ______________________________________________________________________________________________________________________
-
-/*7*/function allCustomersTicketsHandler(req, res) {
-    let sql = `SELECT * FROM customertickets WHERE tkrstatus = 'open'`;
-    client
-        .query(sql)
-        .then(result => {
-            res.send(result.rows);
-        })
-        .catch(error => {
-            console.log("error in getting customer tickets", error);
-            res.status(500).send("An error occurred while getting customer tickets");
-        });
-}
-
-/*
-http://localhost:3001/allCustomersTickets
-
-res.body
-
-[
-  {
-    "customerticketid": 2,
-    "subject": "spoder",
-    "description": "i need spooder man ",
-    "status": "open",
-    "customerid": 1
-  },
-   {
-    "customerticketid": 8,
-    "subject": "jamal",
-    "description": "rabit head ",
-    "status": "open",
-    "customerid": 2
-  }
-]
-*/
-// ______________________________________________________________________________________________________________________
-/*6*/function faqHandler(req, res) {
-  res.send(faqData);
-}
-
-
-// ______________________________________________________________________________________________________________________
-/*7*/function searchFAQHandler(req, res) {
-  const searchTerm = req.query.term; // Assuming the search term is passed as a query parameter named 'term'
+/*14*/function sortingAgentTicketsByStatus(req, res) {
+    let status = req.query.status; // Assuming status is provided as a query parameter
   
-  if (!searchTerm) {
-    res.status(400).send('Search term is missing');
-    return;
+    let sql = `SELECT * FROM agenttickets WHERE agestatus = $1 ORDER BY agestatus`;
+    
+    client
+      .query(sql, [status])
+      .then(result => {
+        res.send(result.rows);
+      })
+      .catch(error => {
+        console.log("Error in sorting agent tickets by status:", error);
+        res.status(500).send("An error occurred while sorting agent tickets by status");
+      });
   }
 
-  const searchResults = faqData.filter((faq) => {
-    const question = faq.question ? faq.question.toLowerCase() : '';
-    return question.includes(searchTerm.toLowerCase());
-  });
+/*15*/function sortingAgentTicketsByPriority(req, res) {
+  let priority = req.query.priority; // Assuming priority is provided as a query parameter
 
-  if (searchResults.length === 0) {
-    res.send('No results found, please choose a closer word');
-  } else {
-    res.send(searchResults);
-  }
+  let sql = `SELECT * FROM agenttickets WHERE LOWER(agepriority) = LOWER($1) ORDER BY    
+    CASE
+      WHEN agepriority = 'high' THEN 3
+      WHEN agepriority = 'medium' THEN 2
+      WHEN agepriority = 'low' THEN 1
+    END DESC`;// Used LOWER to make rought high or High work ** Delete when tell the idea
+  
+  client
+    .query(sql, [priority])
+    .then(result => {
+      res.send(result.rows);
+    })
+    .catch(error => {
+      console.log("Error in sorting agent tickets by priority:", error);
+      res.status(500).send("An error occurred while sorting agent tickets by priority");
+    });
 }
 
-//!! for example test >> http://localhost:5000/searchFAQ?term=update 
+/*16*/function sortingAgentTicketsByDepartment(req, res) {
+    let departmentId = req.query.departmentId; // Assuming departmentId is provided as a query parameter
+  
+    let sql = `SELECT * FROM agenttickets WHERE departmentId = $1 ORDER BY departmentId`;
+    
+    client
+      .query(sql, [departmentId])
+      .then(result => {
+        if (result.rows.length === 0) {
+            res.send('No tickets available in this department');
+          } else {
+            res.send(result.rows);
+          }
+      })
+      .catch(error => {
+        console.log("Error in sorting agent tickets by department ID:", error);
+        res.status(500).send("An error occurred while sorting agent tickets by department ID");
+      });
+    }
 
+// ______________________________________________________________________________________________________
+//Empoloyee Side
 
-// ______________________________________________________________________________________________________________________
+/*17*/function assignTicketByEmployeeHandler(req, res) {
 
+    let TID = req.params.TID;
+    let employeeId = 1; // Replace this with the actual employee ID you want to assign
 
+    let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid = $2 RETURNING *;`
 
-// ###################################################################################################################
+    client
+    .query(sql, [employeeId, TID])
+    .then(result => {
+        res.send(result.rows);
+    })
+    .catch(error => {
+        console.log("Error in assigning agent ticket to employee:", error);
+        res.status(500).send("An error occurred while assigning agent ticket to employee");
+    });
+        }
+
+/*18*/function addCommentByEmployeeHandler(req, res) {
+
+    let TID = req.params.TID;
+    let comment = req.body.employeecomment; 
+
+    let sql = `UPDATE agenttickets SET employeecomment = $1 WHERE agentticketid = $2 RETURNING *;`
+
+    client
+    .query(sql, [comment , TID])
+    .then(result => {
+        res.send(result.rows);
+    })
+    .catch(error => {
+        console.log("Error in adding comment to agent ticket:", error);
+        res.status(500).send("An error occurred while adding comment to agent ticket by employee");
+    });
+        }
+/*19*/function RemoveAgentTiketFromEmployeeWindowHendler(req, res) {
+
+    let TID = req.params.TID;
+
+    let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid = $2 RETURNING *;`
+
+    client
+    .query(sql, [null , TID])
+    .then(result => {
+        res.send(result.rows);
+    })
+    .catch(error => {
+        console.log("Error in adding comment to agent ticket:", error);
+        res.status(500).send("An error occurred while adding comment to agent ticket by employee");
+    });
+        }
+// ______________________________________________________________________________________________________
+
 
 // listen to port if connected to database
 client.connect().then(() => {
@@ -526,3 +407,4 @@ client.connect().then(() => {
         console.log(`Example app listening on port ${port}`)
     })
 }).catch(() => { console.log(`error listening`) })
+
