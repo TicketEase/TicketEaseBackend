@@ -45,6 +45,8 @@ const faqData = require('./faqData.json');  // Import faqData.json
 /*17*/app.patch('/assignTicketByEmployee/:TID', assignTicketByEmployeeHandler);// Agent Ticket Assignment by employee 
 /*18*/app.patch('/addCommentByEmployee/:TID',addCommentByEmployeeHandler); // Add comment on Agent Ticket by employee
 /*19*/app.patch('/RemoveAgentTiketFromEmployeeWindow/:TID',RemoveAgentTiketFromEmployeeWindowHendler);// Remove Agent Tiket From Employee Window
+/*20*/app.put('/updateTicketStatus/:TID', updateTicketStatusHandler); // update ticket status in customerTickets table
+
 
 // *********************************************************************************************************************
 
@@ -397,7 +399,35 @@ const faqData = require('./faqData.json');  // Import faqData.json
         res.status(500).send("An error occurred while adding comment to agent ticket by employee");
     });
         }
+
+
+
+
+
 // ______________________________________________________________________________________________________
+
+/*20*/function updateTicketStatusHandler(req, res) {
+    let ticketId = req.params.TID;
+    let customerUpdate = req.body.status;
+    let sql = `UPDATE customertickets
+    SET tktstatus = $1
+    WHERE customerticketid = $2
+    RETURNING *`;
+    let values = [customerUpdate, ticketId];
+    client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in updating customer ticket:", error);
+            res.status(500).send("An error occurred while updating customer ticket");
+        });
+}
+
+
+// ______________________________________________________________________________________________________
+
 
 
 // listen to port if connected to database
