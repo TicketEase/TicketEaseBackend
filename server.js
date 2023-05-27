@@ -40,6 +40,8 @@ const faqData = require('./faqData.json');  // Import faqData.json
 /*14*/app.get('/sortAgTicketByStatus', sortingAgentTicketsByStatus);// sorte agent tickets according to status (closed or open)
 /*15*/app.get('/sortAgTicketbyPriority', sortingAgentTicketsByPriority);// sorte agent tickets according to priority (high, medium, low)
 /*16*/app.get('/sortAgTicketByDepartment', sortingAgentTicketsByDepartment);// sorte agent tickets according to Department 
+/*21 */app.get('/getcustomerbyemail', getcustomerbyemailHandler);//get customer by email    
+
 // _____________________________________________________________________________________________________________________
 //employee side 
 /*17*/app.patch('/assignTicketByEmployee/:TID', assignTicketByEmployeeHandler);// Agent Ticket Assignment by employee 
@@ -422,6 +424,26 @@ const faqData = require('./faqData.json');  // Import faqData.json
         .catch(error => {
             console.log("Error in updating customer ticket:", error);
             res.status(500).send("An error occurred while updating customer ticket");
+        });
+}
+
+// ______________________________________________________________________________________________________
+
+/*21*/function getcustomerbyemailHandler(req, res) {
+    let customeremail = req.query.email;
+    let sql = `SELECT * FROM customers WHERE cemail = $1`;
+    let values = [customeremail];
+    client
+        .query(sql, values)
+        .then(result => {
+            if (result.rows.length > 0) {
+                res.send(result.rows);
+            } else {
+                res.send("Invalid email or password");
+            }
+        })
+        .catch(error => {
+            res.send("your not signed up please sign up");
         });
 }
 
