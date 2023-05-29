@@ -275,7 +275,7 @@ function updateAgentStatusHandler(req, res) {
     let newAgentTicket = req.body;
     let TID = req.params.TID;
     let sql = `INSERT INTO agenttickets (agesubject, agentdescription, agepriority,departmentid,customerticketid,agestatus,employeeid) VALUES ($1, $2, $3, $4, $5,$6,$7) RETURNING *`;
-    let values = [newAgentTicket.agesubject, newAgentTicket.agentdescription, newAgentTicket.agepriority, newAgentTicket.departmentid, TID, "open",7];
+    let values = [newAgentTicket.agesubject, newAgentTicket.agentdescription, newAgentTicket.agepriority, newAgentTicket.departmentid, TID, "open",4];
     client
         .query(sql, values)
         .then(result => {
