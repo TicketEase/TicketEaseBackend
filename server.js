@@ -538,7 +538,7 @@ function updateAgentStatusHandler(req, res) {
 }
 
 /*20*/function allAssignTicketByEmployeeHandler(req, res) {
-    let sql = `SELECT * FROM agenttickets WHERE employeeid= 8`;
+    let sql = `SELECT * FROM agenttickets WHERE employeeid= 5`;
     client
         .query(sql)
         .then(result => {
