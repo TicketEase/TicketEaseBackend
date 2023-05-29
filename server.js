@@ -30,22 +30,26 @@ const faqData = require('./faqData.json');  // Import faqData.json
 /*7*/app.get('/getCustomerTickets/:CID', getCustomerTicketsHandler); // get customer tickets from customerTickets table
 /*8*/app.get('/allCustomersTickets', allCustomersTicketsHandler); // get all customer tickets from customerTickets table were the status is open
 /*9*/app.get('/getAllCustomers', getAllCustomersHandler);  //get all customers
+/**/app.patch('/updateAgentStatus/:TID', updateAgentStatusHandler);
+/**/app.patch('/closeCustomerTkt/:CID', closeCustomerTktHandler);
+/*21 */app.get('/getcustomerbyemail', getcustomerbyemailHandler);//get customer by email    
 // _____________________________________________________________________________________________________________________
 
 //agent side
 /*10*/app.post('/creatAgentTicket/:TID', CreatAgentTicketHandler);    //add agent ticket to AgentTicket table acoording to customer Ticket ID
 /*11*/ app.get('/allAgentTickets', allAgentTicketsHandler); //get all agent tickets
-/*12*/app.get('/SearchInAgentTicket', SearchInAgentTicketHandler); //search in agent ticket based on customer's email
-/*13*/app.patch ('/CloseAgenttTicket/:TID',CloseAgentTicketHandler);//close AgentTicket 
-/*14*/app.get('/sortAgTicketByStatus', sortingAgentTicketsByStatus);// sorte agent tickets according to status (closed or open)
-/*15*/app.get('/sortAgTicketbyPriority', sortingAgentTicketsByPriority);// sorte agent tickets according to priority (high, medium, low)
-/*16*/app.get('/sortAgTicketByDepartment', sortingAgentTicketsByDepartment);// sorte agent tickets according to Department 
+/*12*/app.get('/SearchInAgentTicket/:cemail', SearchInAgentTicketHandler); //search in agent ticket based on customer's email
+/*13*/app.patch('/CloseAgenttTicket/:TID', CloseAgentTicketHandler);//close AgentTicket 
+/*14*/app.get('/sortAgTicketByStatus/:StsNo', sortingAgentTicketsByStatus);// sorte agent tickets according to status (closed or open)
+/*15*/app.get('/sortAgTicketbyPriority/:PriNo', sortingAgentTicketsByPriority);// sorte agent tickets according to priority (high, medium, low)
+/*16*/app.get('/sortAgTicketByDepartment/:DepNo', sortingAgentTicketsByDepartment);// sorte agent tickets according to Department 
 // _____________________________________________________________________________________________________________________
 //employee side 
 /*17*/app.patch('/assignTicketByEmployee/:TID', assignTicketByEmployeeHandler);// Agent Ticket Assignment by employee 
-/*18*/app.patch('/addCommentByEmployee/:TID',addCommentByEmployeeHandler); // Add comment on Agent Ticket by employee
-/*19*/app.patch('/RemoveAgentTiketFromEmployeeWindow/:TID',RemoveAgentTiketFromEmployeeWindowHendler);// Remove Agent Tiket From Employee Window
-
+/*18*/app.patch('/addCommentByEmployee/:TID', addCommentByEmployeeHandler); // Add comment on Agent Ticket by employee
+/*19*/app.patch('/RemoveAgentTiketFromEmployeeWindow/:TID', RemoveAgentTiketFromEmployeeWindowHendler);// Remove Agent Tiket From Employee Window
+/*20*/app.get('/allAgentTicketsOpen', allAgentTicketsOpenHandler);
+/*21*/app.get('/allAssignTicketByEmployee', allAssignTicketByEmployeeHandler);
 // *********************************************************************************************************************
 
 // handlers ()
@@ -194,7 +198,7 @@ const faqData = require('./faqData.json');  // Import faqData.json
 }
 
 /*8*/function allCustomersTicketsHandler(req, res) {
-    let sql = `SELECT * FROM customertickets WHERE tktstatus = 'open'`;
+    let sql = `SELECT * FROM customertickets WHERE tktstatus = 'open' AND tkttakenbyagent ='doing'`;
     client
         .query(sql)
         .then(result => {
@@ -219,13 +223,59 @@ const faqData = require('./faqData.json');  // Import faqData.json
         });
 }
 
+function updateAgentStatusHandler(req, res) {
+    let TID = req.params.TID;
+    let sql = `UPDATE customertickets SET tkttakenbyagent=$1 WHERE customerticketid =${TID} RETURNING *`;
+    let values = ['done'];
+    client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in creating agent ticket", error);
+            res.status(500).send("An error occurred while closing agent ticket");
+        });
+}
+/*13*/function closeCustomerTktHandler(req, res) {
+    let CID = req.params.CID;
+    let sql = `UPDATE customertickets SET tktstatus=$1 WHERE customerticketid =${CID} RETURNING *`;
+    let values = ['closed'];
+    client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in creating agent ticket", error);
+            res.status(500).send("An error occurred while closing agent ticket");
+        });
+}
+
+/*21*/function getcustomerbyemailHandler(req, res) {
+    let customeremail = req.query.email;
+    let sql = `SELECT * FROM customers WHERE cemail = $1`;
+    let values = [customeremail];
+    client
+        .query(sql, values)
+        .then(result => {
+            if (result.rows.length > 0) {
+                res.send(result.rows);
+            } else {
+                res.send("Invalid email or password");
+            }
+        })
+        .catch(error => {
+            res.send("your not signed up please sign up");
+        });
+}
 // _____________________________________________________________________________________________________________________
 // agentHandler
 /*10*/function CreatAgentTicketHandler(req, res) {
     let newAgentTicket = req.body;
     let TID = req.params.TID;
-    let sql = `INSERT INTO agenttickets (agesubject, agentdescription, agepriority,departmentid,customerticketid,agestatus) VALUES ($1, $2, $3, $4, $5,$6) RETURNING *`;
-    let values = [newAgentTicket.agesubject, newAgentTicket.agentdescription, newAgentTicket.agepriority, newAgentTicket.departmentid, TID, "open"];
+    let sql = `INSERT INTO agenttickets (agesubject, agentdescription, agepriority,departmentid,customerticketid,agestatus,employeeid) VALUES ($1, $2, $3, $4, $5,$6,$7) RETURNING *`;
+    let values = [newAgentTicket.agesubject, newAgentTicket.agentdescription, newAgentTicket.agepriority, newAgentTicket.departmentid, TID, "open",7];
     client
         .query(sql, values)
         .then(result => {
@@ -252,7 +302,7 @@ const faqData = require('./faqData.json');  // Import faqData.json
 
 
 /*12*/function SearchInAgentTicketHandler(req, res) {
-    let Cemial = req.query.cemail;
+    let Cemial = req.params.cemail;
     console.log(Cemial);
     const sql = `
     SELECT agenttickets.agentticketid, agenttickets.agesubject, agenttickets.agentdescription, agenttickets.agepriority, agenttickets.employeecomment ,agenttickets.agestatus
@@ -270,8 +320,8 @@ const faqData = require('./faqData.json');  // Import faqData.json
             res.status(500).send(error);
         });
 }
-    
-/*13*/function CloseAgentTicketHandler(req, res) {    
+
+/*13*/function CloseAgentTicketHandler(req, res) {
     let TID = req.params.TID;
     let sql = `UPDATE agenttickets SET agestatus=$1 WHERE agentticketid =${TID} RETURNING *`;
     let values = ['closed'];
@@ -287,61 +337,135 @@ const faqData = require('./faqData.json');  // Import faqData.json
 }
 
 /*14*/function sortingAgentTicketsByStatus(req, res) {
-    let status = req.query.status; // Assuming status is provided as a query parameter
+    let status = req.params.StsNo; // Assuming status is provided as a query parameter
+    if (status == 1) {
+        let sql = `SELECT * FROM agenttickets WHERE agestatus = $1`;
+        let values = ['open'];
+        client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in sorting agent tickets by status:", error);
+            res.status(500).send("An error occurred while sorting agent tickets by status");
+        });
+    }
+    else if (status == 2) {
+        let sql = `SELECT * FROM agenttickets WHERE agestatus = $1 `;
+        let values = ['closed'];
+        client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in sorting agent tickets by status:", error);
+            res.status(500).send("An error occurred while sorting agent tickets by status");
+        });
+    }
+
   
-    let sql = `SELECT * FROM agenttickets WHERE agestatus = $1 ORDER BY agestatus`;
-    
-    client
-      .query(sql, [status])
-      .then(result => {
-        res.send(result.rows);
-      })
-      .catch(error => {
-        console.log("Error in sorting agent tickets by status:", error);
-        res.status(500).send("An error occurred while sorting agent tickets by status");
-      });
-  }
+}
 
 /*15*/function sortingAgentTicketsByPriority(req, res) {
-  let priority = req.query.priority; // Assuming priority is provided as a query parameter
-
-  let sql = `SELECT * FROM agenttickets WHERE LOWER(agepriority) = LOWER($1) ORDER BY    
-    CASE
-      WHEN agepriority = 'high' THEN 3
-      WHEN agepriority = 'medium' THEN 2
-      WHEN agepriority = 'low' THEN 1
-    END DESC`;// Used LOWER to make rought high or High work ** Delete when tell the idea
-  
-  client
-    .query(sql, [priority])
-    .then(result => {
-      res.send(result.rows);
-    })
-    .catch(error => {
-      console.log("Error in sorting agent tickets by priority:", error);
-      res.status(500).send("An error occurred while sorting agent tickets by priority");
-    });
+    let priority = req.params.PriNo; // Assuming priority is provided as a query parameter
+    console.log(priority);
+    if (priority == 1) {
+        let sql = `SELECT * FROM agenttickets WHERE agepriority = $1;`
+        let values = ['high'];
+        client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in sorting agent tickets by priority:", error);
+            res.status(500).send("An error occurred while sorting agent tickets by priority");
+        });
+    }
+    else if (priority ==2) {
+        let sql = `SELECT * FROM agenttickets WHERE agepriority = $1 ;`
+        let values = ['medium'];
+        client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in sorting agent tickets by priority:", error);
+            res.status(500).send("An error occurred while sorting agent tickets by priority");
+        });
+    }
+    else if (priority == 3) {
+        let sql = `SELECT * FROM agenttickets WHERE agepriority = $1;`
+        let values = ['low'];
+        client
+        .query(sql, values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in sorting agent tickets by priority:", error);
+            res.status(500).send("An error occurred while sorting agent tickets by priority");
+        });
+    }
+    
+ 
 }
 
 /*16*/function sortingAgentTicketsByDepartment(req, res) {
-    let departmentId = req.query.departmentId; // Assuming departmentId is provided as a query parameter
-  
-    let sql = `SELECT * FROM agenttickets WHERE departmentId = $1 ORDER BY departmentId`;
-    
-    client
-      .query(sql, [departmentId])
-      .then(result => {
-        if (result.rows.length === 0) {
-            res.send('No tickets available in this department');
-          } else {
-            res.send(result.rows);
-          }
-      })
-      .catch(error => {
-        console.log("Error in sorting agent tickets by department ID:", error);
-        res.status(500).send("An error occurred while sorting agent tickets by department ID");
-      });
-    }
+    let departmentId = req.params.DepNo; // Assuming departmentId is provided as a query parameter
+    // if (departmentId == 1) {
+        let sql = `SELECT * FROM agenttickets WHERE departmentId = ${departmentId}`;
+        // let values = ['1'];
+        client
+        .query(sql)
+        .then(result => {
+                res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in sorting agent tickets by department ID:", error);
+            res.status(500).send("An error occurred while sorting agent tickets by department ID");
+        });
+
+    // }
+    // else if (departmentId == 2) {
+    //     let sql = `SELECT * FROM agenttickets WHERE departmentId = $1`;
+    //     let values = ['2'];
+    //     client
+    //     .query(sql, values)
+    //     .then(result => {
+            
+    //             res.send(result.rows);
+            
+    //     })
+    //     .catch(error => {
+    //         console.log("Error in sorting agent tickets by department ID:", error);
+    //         res.status(500).send("An error occurred while sorting agent tickets by department ID");
+    //     });
+
+    // } 
+    // else if (departmentId == 3) {
+    //     let sql = `SELECT * FROM agenttickets WHERE departmentId = $1`;
+    //     let values = ['3'];
+    //     client
+    //     .query(sql, values)
+    //     .then(result => {
+    //         if (result.rows.length === 0) {
+    //             res.send('No tickets available in this department');
+    //         } else {
+    //             res.send(result.rows);
+    //         }
+    //     })
+    //     .catch(error => {
+    //         console.log("Error in sorting agent tickets by department ID:", error);
+    //         res.status(500).send("An error occurred while sorting agent tickets by department ID");
+    //     });
+
+    // }
+
+}
 
 // ______________________________________________________________________________________________________
 //Empoloyee Side
@@ -349,56 +473,82 @@ const faqData = require('./faqData.json');  // Import faqData.json
 /*17*/function assignTicketByEmployeeHandler(req, res) {
 
     let TID = req.params.TID;
-    let employeeId = 1; // Replace this with the actual employee ID you want to assign
+    let employeeId = 8; // Replace this with the actual employee ID you want to assign
 
-    let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid = $2 RETURNING *;`
+    let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid = $2 RETURNING *`;
 
     client
-    .query(sql, [employeeId, TID])
-    .then(result => {
-        res.send(result.rows);
-    })
-    .catch(error => {
-        console.log("Error in assigning agent ticket to employee:", error);
-        res.status(500).send("An error occurred while assigning agent ticket to employee");
-    });
-        }
+        .query(sql, [employeeId, TID])
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in assigning agent ticket to employee:", error);
+            res.status(500).send("An error occurred while assigning agent ticket to employee");
+        });
+}
 
 /*18*/function addCommentByEmployeeHandler(req, res) {
 
     let TID = req.params.TID;
-    let comment = req.body.employeecomment; 
+    let comment = req.body.employeecomment;
 
     let sql = `UPDATE agenttickets SET employeecomment = $1 WHERE agentticketid = $2 RETURNING *;`
 
     client
-    .query(sql, [comment , TID])
-    .then(result => {
-        res.send(result.rows);
-    })
-    .catch(error => {
-        console.log("Error in adding comment to agent ticket:", error);
-        res.status(500).send("An error occurred while adding comment to agent ticket by employee");
-    });
-        }
+        .query(sql, [comment, TID])
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in adding comment to agent ticket:", error);
+            res.status(500).send("An error occurred while adding comment to agent ticket by employee");
+        });
+}
 /*19*/function RemoveAgentTiketFromEmployeeWindowHendler(req, res) {
 
     let TID = req.params.TID;
-
-    let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid = $2 RETURNING *;`
-
+    let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid =${TID} RETURNING *;`
+    let values=[null];
     client
-    .query(sql, [null , TID])
-    .then(result => {
-        res.send(result.rows);
-    })
-    .catch(error => {
-        console.log("Error in adding comment to agent ticket:", error);
-        res.status(500).send("An error occurred while adding comment to agent ticket by employee");
-    });
-        }
+        .query(sql,values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("Error in adding comment to agent ticket:", error);
+            res.status(500).send("An error occurred while adding comment to agent ticket by employee");
+        });
+}
 // ______________________________________________________________________________________________________
 
+/*20*/function allAgentTicketsOpenHandler(req, res) {
+    let sql = `SELECT * FROM agenttickets WHERE agestatus = $1 AND employeeid = $2;`
+    
+    let values=['open',7];
+    client
+        .query(sql,values)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in getting agent tickets", error);
+            res.status(500).send("An error occurred while getting agent tickets");
+        });
+}
+
+/*20*/function allAssignTicketByEmployeeHandler(req, res) {
+    let sql = `SELECT * FROM agenttickets WHERE employeeid= 8`;
+    client
+        .query(sql)
+        .then(result => {
+            res.send(result.rows);
+        })
+        .catch(error => {
+            console.log("error in getting agent tickets", error);
+            res.status(500).send("An error occurred while getting agent tickets");
+        });
+}
 
 // listen to port if connected to database
 client.connect().then(() => {

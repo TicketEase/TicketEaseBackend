@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS customertickets (
   tktsubject VARCHAR(255),
   tktdescription TEXT,
   tktstatus VARCHAR(255) DEFAULT 'open',
+  tkttakenbyagent VARCHAR(255) DEFAULT 'doing',
   customerid INTEGER REFERENCES customers(customerid)
 );
 -- Create table AgentTickets
