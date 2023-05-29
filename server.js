@@ -509,7 +509,7 @@ function updateAgentStatusHandler(req, res) {
 
     let TID = req.params.TID;
     let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid =${TID} RETURNING *;`
-    let values=[null];
+    let values=[7];
     client
         .query(sql,values)
         .then(result => {
