@@ -473,7 +473,7 @@ function updateAgentStatusHandler(req, res) {
 /*17*/function assignTicketByEmployeeHandler(req, res) {
 
     let TID = req.params.TID;
-    let employeeId = 8; // Replace this with the actual employee ID you want to assign
+    let employeeId = 5; // Replace this with the actual employee ID you want to assign
 
     let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid = $2 RETURNING *`;
 
@@ -509,7 +509,7 @@ function updateAgentStatusHandler(req, res) {
 
     let TID = req.params.TID;
     let sql = `UPDATE agenttickets SET employeeid = $1 WHERE agentticketid =${TID} RETURNING *;`
-    let values=[7];
+    let values=[4];
     client
         .query(sql,values)
         .then(result => {
@@ -525,7 +525,7 @@ function updateAgentStatusHandler(req, res) {
 /*20*/function allAgentTicketsOpenHandler(req, res) {
     let sql = `SELECT * FROM agenttickets WHERE agestatus = $1 AND employeeid = $2;`
     
-    let values=['open',7];
+    let values=['open',4];
     client
         .query(sql,values)
         .then(result => {
